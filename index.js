@@ -73,7 +73,7 @@ var channel = {
         var subscribers = queues[binding.queueName] ? queues[binding.queueName].subscribers : [];
         subscribers.forEach(function (sub) {
           var message = { fields: { routingKey: routingKey }, properties: props, content: content };
-          sub(message);
+          sub.handler(message);
         });
       });
 
@@ -82,7 +82,23 @@ var channel = {
   },
 
   consume: function (queue, handler) {
-    queues[queue].subscribers.push(handler);
+    var consumerTag = Math.random().toString(36)
+    queues[queue].subscribers.push({ handler: handler, consumerTag: consumerTag });
+    return Bluebird.resolve({ consumerTag: consumerTag })
+  },
+
+  cancel: function (consumerTag) {
+    return new Bluebird(function (resolve) {
+      for (q in queues) {
+        let idx = queues[q].subscribers.find(function (sub) {
+          return sub.consumerTag === consumerTag;
+        })
+        if (idx > -1 ) {
+          queues[q].subscribers.splice(idx, 1)
+        }
+      }
+      return resolve()
+    })
   },
 
   deleteQueue: function (queue) {
