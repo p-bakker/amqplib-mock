@@ -10,6 +10,14 @@ var channel = {
     });
   },
 
+  checkQueue: function (queue) {
+    return new Bluebird(function (resolve, reject) {
+      if (!queues[queue])
+        return reject("Checking non-existing queue " + queue);
+      return resolve();
+    })
+  },
+
   assertExchange: function (exchange, type, exchOptions) {
     return new Bluebird(function (resolve) {
       exchOptions = exchOptions || {};
@@ -17,6 +25,14 @@ var channel = {
 
       return resolve({exchange: exchange});
     });
+  },
+
+  checkExchange: function (exchange) {
+    return new Bluebird(function (resolve, reject) {
+      if (!exchanges[exchange])
+        return reject("Checking non-existing exchange " + exchange);
+      return resolve();
+    })
   },
 
   bindQueue: function (queue, exchange, key, args) {
