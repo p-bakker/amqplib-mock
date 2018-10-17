@@ -112,6 +112,7 @@ var channel = {
   prefetch: function () { },
   on: function () { },
   once: function () { },
+  setMaxListeners: function () { },
   close: function () {
     return Bluebird.resolve();
   }
