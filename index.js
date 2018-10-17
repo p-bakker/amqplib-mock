@@ -6,7 +6,7 @@ var channel = {
   assertQueue: function (queue, qOptions) {
     return new Bluebird(function (resolve) {
       setIfUndef(queues, queue, { messages: [], subscribers: [], options: qOptions });
-      return resolve();
+      return resolve({queue: queue});
     });
   },
 
@@ -15,7 +15,7 @@ var channel = {
       exchOptions = exchOptions || {};
       setIfUndef(exchanges, exchange, { bindings: [], options: exchOptions, type: type });
 
-      return resolve();
+      return resolve({exchange: exchange});
     });
   },
 
