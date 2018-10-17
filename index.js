@@ -41,10 +41,24 @@ var channel = {
         return reject("Bind to non-existing exchange " + exchange);
 
       var re = "^" + key.replace(".", "\\.").replace("#", "(\\w|\\.)+").replace("*", "\\w+") + "$";
-      exchanges[exchange].bindings.push({ regex: new RegExp(re), queueName: queue });
+      exchanges[exchange].bindings.push({ regex: new RegExp(re), queueName: queue, key: key });
 
       return resolve();
     });
+  },
+
+  unbindQueue: function (queue, exchange, key, args) {
+    return new Bluebird(function (resolve, reject) {
+      if (exchanges[exchange]) {
+        var idx = exchanges[exchange].bindings.find(function (binding) {
+          return binding.key === key;
+        })
+        if (idx > -1) {
+          exchanges[exchange].bindings.splice(idx, 1)
+        }
+      }
+      return resolve()
+    })
   },
 
   publish: function (exchange, routingKey, content, props) {
