@@ -63,21 +63,37 @@ var channel = {
 
   publish: function (exchange, routingKey, content, props) {
     return new Bluebird(function (resolve, reject) {
+      // handle the special case where exchange name is empty
+      if (exchange === '') {
+        return channel.sendToQueue(routingKey, content, props).then(function () {
+          resolve()
+        })
+      }
+
       if (!exchanges[exchange])
         return reject("Publish to non-existing exchange " + exchange);
 
       var bindings = exchanges[exchange].bindings;
       var matchingBindings = bindings.filter(function (b) { return b.regex.test(routingKey); });
 
-      matchingBindings.forEach(function (binding) {
-        var subscribers = queues[binding.queueName] ? queues[binding.queueName].subscribers : [];
-        subscribers.forEach(function (sub) {
-          var message = { fields: { routingKey: routingKey }, properties: props, content: content };
-          sub.handler(message);
-        });
-      });
+      return Bluebird.all(
+        matchingBindings.map(function (binding) {
+          return channel.sendToQueue(binding.queueName, content, props)
+        })
+      ).then(function () {
+        resolve()
+      })
+    })
+  },
 
-      return resolve();
+  sendToQueue: function (queue, content, props) {
+    return new Bluebird(function (resolve, reject) {
+      var subscribers = queues[queue] ? queues[queue].subscribers : [];
+      subscribers.forEach(function (sub) {
+        var message = { fields: { routingKey: queue }, properties: props, content: content };
+        sub.handler(message);
+      });
+      resolve();
     })
   },
 
