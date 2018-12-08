@@ -6,7 +6,11 @@ var channel = {
   assertQueue: function (queue, qOptions) {
     return new Bluebird(function (resolve) {
       setIfUndef(queues, queue, { messages: [], subscribers: [], options: qOptions });
-      return resolve({queue: queue});
+      return resolve({
+        queue: queue,
+        messageCount: queues[queue].messages.length,
+        consumerCount: queues[queue].subscribers.length
+      });
     });
   },
 
@@ -14,7 +18,11 @@ var channel = {
     return new Bluebird(function (resolve, reject) {
       if (!queues[queue])
         return reject("Checking non-existing queue " + queue);
-      return resolve();
+      return resolve({
+        queue,
+        messageCount: queues[queue].messages.length,
+        consumerCount: queues[queue].subscribers.length,
+      });
     })
   },
 
